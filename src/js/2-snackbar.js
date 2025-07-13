@@ -1,35 +1,57 @@
-// Dokümantasyonda açıklanan
 import iziToast from 'izitoast';
-// Ek stillerin ek olarak içe aktarılması
 import 'izitoast/dist/css/iziToast.min.css';
 
-document
-  .getElementById('delay-form')
-  .addEventListener('submit', function (event) {
-    event.preventDefault();
+const form = document.querySelector('.form');
 
-    const delay = Number(document.getElementById('delay-input').value);
-    const status = document.querySelector('input[name="status"]:checked').value;
+form.addEventListener('submit', event => {
+  event.preventDefault();
 
-    const promise = new Promise((resolve, reject) => {
-      setTimeout(() => {
-        status === 'resolve' ? resolve(delay) : reject(delay);
-      }, delay);
+  const delay = Number(form.delay.value);
+  const state = form.state.value;
+
+  if (isNaN(delay) || delay < 0) {
+    iziToast.error({
+      title: 'Error',
+      message: 'Delay must be a positive number',
+      position: 'topRight',
     });
+    return;
+  }
 
-    promise
-      .then(delay => {
-        iziToast.success({
-          title: '✅ Başarılı',
-          message: `Promise başarıyla gerçekleşti: ${delay} ms sonra`,
-          position: 'topRight',
-        });
-      })
-      .catch(delay => {
-        iziToast.error({
-          title: '❌ Hata',
-          message: `Promise reddedildi: ${delay} ms sonra`,
-          position: 'topRight',
-        });
+  if (!state) {
+    iziToast.error({
+      title: 'Error',
+      message: 'Please select a state',
+      position: 'topRight',
+    });
+    return;
+  }
+
+  createPromise(delay, state)
+    .then(delay => {
+      iziToast.success({
+        title: 'Success',
+        message: `✅ Fulfilled promise in ${delay}ms`,
+        position: 'topRight',
       });
+    })
+    .catch(delay => {
+      iziToast.error({
+        title: 'Error',
+        message: `❌ Rejected promise in ${delay}ms`,
+        position: 'topRight',
+      });
+    });
+});
+
+function createPromise(delay, state) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (state === 'fulfilled') {
+        resolve(delay);
+      } else {
+        reject(delay);
+      }
+    }, delay);
   });
+}
